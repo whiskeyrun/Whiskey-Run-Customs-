@@ -64,7 +64,34 @@ export default async (request) => {
             customer.address.country
           ].filter(Boolean).join(", ")
         : "Not provided";
+const supabaseResponse = await fetch(
+  `${process.env.SUPABASE_URL}/rest/v1/orders`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": process.env.SUPABASE_SECRET_KEY,
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify({
+      customer_email: customer.email || null,
+      customer_name: customer.name || null,
+      items: lineItems.data.map(item => ({
+        name: item.description,
+        quantity: item.quantity,
+        amount_total: item.amount_total
+      })),
+      total_amount: session.amount_total,
+      stripe_session_id: session.id,
+      payment_status: session.payment_status
+    })
+  }
+);
 
+if (!supabaseResponse.ok) {
+  console.error("Supabase order save failed:", supabaseResponse.status);
+  return new Response("Order recording failed", { status: 500 });
+}
       const emailBody = [
         "New paid order - Whiskey Run Customs",
         "",

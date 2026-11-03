@@ -24,7 +24,9 @@ export default async (request) => {
 
     const line_items = items.map((item) => {
       const product = products[item.id];
-      const qty = item.qty;
+      
+const qty = item.quantity;
+
 
       if (!product || !Number.isInteger(qty) ||
           qty < 1 || qty > 50) {

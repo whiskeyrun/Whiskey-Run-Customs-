@@ -48,6 +48,9 @@ const qty = item.quantity;
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
+      shipping_address_collection: {
+  allowed_countries: ["US"],
+},
       success_url: `${origin}/?payment=success`,
       cancel_url: `${origin}/?payment=cancelled`
     });

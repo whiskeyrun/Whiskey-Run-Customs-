@@ -65,7 +65,7 @@ export default async (request) => {
           ].filter(Boolean).join(", ")
         : "Not provided";
 const supabaseResponse = await fetch(
-  `${process.env.SUPABASE_URL}/rest/v1/orders`,
+  `${process.env.SUPABASE_URL}/rest/v1/orders?on_conflict=stripe_session_id`,
   {
     method: "POST",
     headers: {

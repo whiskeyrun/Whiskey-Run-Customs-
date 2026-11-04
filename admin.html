@@ -10,7 +10,7 @@ const SUPABASE_KEY = 'sb_publishable_5LTFwcF5Cprv4GXd9K0bOQ_LWlpcwWD';
 
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id), status=msg=>$('status').textContent=msg;
-const ownerEmail='whiskeyrun1414@gmail.com';
+const ownerEmail='whiskeyrun14@outlook.com';
 let currentUser=null, rows=[];
 function allowed(user){return !!user && user.email?.toLowerCase()===ownerEmail;}
 function setLoggedIn(user){currentUser=allowed(user)?user:null;$('login').classList.toggle('hidden',!!currentUser);$('workspace').classList.toggle('hidden',!currentUser);if(user&&!currentUser)status('This account is not authorized to manage products.');if(currentUser)loadProducts();}

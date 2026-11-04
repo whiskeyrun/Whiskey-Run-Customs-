@@ -89,7 +89,11 @@ const supabaseResponse = await fetch(
 );
 
 if (!supabaseResponse.ok) {
-  console.error("Supabase order save failed:", supabaseResponse.status);
+  console.error(
+  "Supabase order save failed:",
+  supabaseResponse.status,
+  await supabaseResponse.text()
+);
   return new Response("Order recording failed", { status: 500 });
 }
       const emailBody = [

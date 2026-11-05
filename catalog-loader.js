@@ -11,7 +11,7 @@
     if (!Array.isArray(data) || data.length === 0) return;
 
     const dashboardProducts = data.map((p) => ({
-      id: Number(p.id),
+      id: p.id,
       name: p.name || 'Custom product',
       desc: p.description || '',
       price: Number(p.price) || 0,
@@ -23,10 +23,10 @@
     // Preserve the complete built-in catalog. Only update products with a
     // matching ID, and append dashboard-only products rather than replacing
     // the entire list with a possibly partial database result.
-    const merged = new Map(products.map((p) => [Number(p.id), p]));
+    const merged = new Map(products.map((p) => [String(p.id), p]));
     for (const product of dashboardProducts) {
-      const existing = merged.get(product.id);
-      merged.set(product.id, existing
+      const existing = merged.get(String(product.id));
+      merged.set(String(product.id), existing
         ? { ...existing, ...product, image: product.image || existing.image || '' }
         : product);
     }

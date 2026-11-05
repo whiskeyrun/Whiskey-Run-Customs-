@@ -71,6 +71,7 @@ const supabaseResponse = await fetch(
     headers: {
       "Content-Type": "application/json",
       "apikey": process.env.SUPABASE_SECRET_KEY,
+      "Authorization": `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
       "Prefer": "return=minimal"
     },
     body: JSON.stringify({

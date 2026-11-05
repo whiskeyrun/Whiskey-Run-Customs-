@@ -52,6 +52,11 @@ export default async (request) => {
 
       const amount = ((session.amount_total || 0) / 100)
         .toFixed(2);
+      const orderDate = new Date(session.created * 1000).toLocaleString("en-US", {
+        dateStyle: "long",
+        timeStyle: "short",
+        timeZone: "America/New_York"
+      });
 
       const customer = session.customer_details || {};
       const address = customer.address
@@ -104,6 +109,7 @@ if (!supabaseResponse.ok) {
       const emailBody = [
         "New paid order - Whiskey Run Customs",
         "",
+        `Order date/time: ${orderDate} (Eastern Time)`,
         `Stripe Session: ${session.id}`,
         `Customer: ${customer.name || "Not provided"}`,
         `Email: ${customer.email || "Not provided"}`,

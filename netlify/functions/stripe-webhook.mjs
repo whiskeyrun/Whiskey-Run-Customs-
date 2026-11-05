@@ -72,7 +72,7 @@ const supabaseResponse = await fetch(
       "Content-Type": "application/json",
       "apikey": process.env.SUPABASE_SECRET_KEY,
       "Authorization": `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
-      "Prefer": "return=minimal"
+      "Prefer": "resolution=merge-duplicates,return=minimal"
     },
     body: JSON.stringify({
       customer_email: customer.email || null,

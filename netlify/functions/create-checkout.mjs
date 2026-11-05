@@ -27,7 +27,7 @@ export default async (request) => {
       const id = String(item.id ?? "");
       // The storefront cart stores its count as "qty"; accept both common names.
       const quantity = Number(item.quantity ?? item.qty);
-      const validId = /^\\d+$/.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+      const validId = /^\d+$/.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
       if (!validId || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
         throw new Error("One or more cart items are invalid.");
       }

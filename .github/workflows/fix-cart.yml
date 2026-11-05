@@ -1,0 +1,42 @@
+name: Fix storefront multi-product cart
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-cart.yml
+permissions:
+  contents: write
+jobs:
+  patch-cart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix product ID handling in cart buttons
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("index.html")
+          html = p.read_text()
+          old_add = """document.getElementById('products').addEventListener('click',e=>{const id=Number(e.target.dataset.add);if(!id)return;const p=products.find(x=>x.id===id), found=cart.find(x=>x.id===id);if(found)found.qty++;else cart.push({...p,qty:1});renderCart();showCart();});"""
+          new_add = """document.getElementById('products').addEventListener('click',e=>{const button=e.target.closest('[data-add]');if(!button)return;const id=String(button.dataset.add);const p=products.find(x=>String(x.id)===id);if(!p)return;const found=cart.find(x=>String(x.id)===id);if(found)found.qty++;else cart.push({...p,qty:1});renderCart();showCart();});"""
+          old_cart = """document.getElementById('cartItems').addEventListener('click',e=>{const id=Number(e.target.dataset.inc||e.target.dataset.dec||e.target.dataset.remove);if(!id)return;const item=cart.find(x=>x.id===id);if(e.target.dataset.inc)item.qty++;else if(e.target.dataset.dec){item.qty--;if(item.qty<=0)cart=cart.filter(x=>x.id!==id);}else cart=cart.filter(x=>x.id!==id);renderCart();});"""
+          new_cart = """document.getElementById('cartItems').addEventListener('click',e=>{const button=e.target.closest('[data-inc],[data-dec],[data-remove]');if(!button)return;const id=String(button.dataset.inc||button.dataset.dec||button.dataset.remove);const item=cart.find(x=>String(x.id)===id);if(!item)return;if(button.dataset.inc)item.qty++;else if(button.dataset.dec){item.qty--;if(item.qty<=0)cart=cart.filter(x=>String(x.id)!==id);}else cart=cart.filter(x=>String(x.id)!==id);renderCart();});"""
+          if old_add in html:
+              html = html.replace(old_add, new_add, 1)
+          elif new_add not in html:
+              raise SystemExit("Could not find the original Add to Cart handler.")
+          if old_cart in html:
+              html = html.replace(old_cart, new_cart, 1)
+          elif new_cart not in html:
+              raise SystemExit("Could not find the original cart quantity handler.")
+          p.write_text(html)
+          PY
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "Cart handlers already fixed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Fix multi-product cart handling for text product IDs"
+          git push

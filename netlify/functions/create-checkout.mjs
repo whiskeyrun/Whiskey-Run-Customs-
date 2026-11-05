@@ -39,7 +39,7 @@ export default async (request) => {
       available: "eq.true"
     });
     const productResponse = await fetch(
-      `${supabaseUrl.replace(/\\/$/, "")}/rest/v1/products?${query.toString()}`,
+      `${supabaseUrl.endsWith("/") ? supabaseUrl.slice(0, -1) : supabaseUrl}/rest/v1/products?${query.toString()}`,
       {
         headers: {
           apikey: supabaseKey,

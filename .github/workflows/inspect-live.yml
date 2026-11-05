@@ -1,0 +1,40 @@
+name: Inspect live storefront code
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/inspect-live.yml
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect storefront behavior
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          files = [Path("index.html"), Path("admin.html"), Path("netlify/functions/create-checkout.mjs")]
+          terms = ["createClient", "from('products')", 'from("products")', "image_url", "img.src", "imageUrl", "supabase", "renderProducts", "loadProducts", "available", "innerHTML", "product-image", "product-images"]
+          out=[]
+          for p in files:
+              if not p.exists(): continue
+              s=p.read_text(errors="replace")
+              out.append(f"FILE {p} bytes={p.stat().st_size} lines={len(s.splitlines())}")
+              for term in terms:
+                  ms=list(re.finditer(re.escape(term),s,re.I))
+                  if ms:
+                      out.append(f"TERM {term}: {len(ms)}")
+                      for m in ms[:5]:
+                          a=max(0,m.start()-260); b=min(len(s),m.end()+450)
+                          out.append(re.sub(r"\\s+"," ",s[a:b]))
+          Path("live-source-report.txt").write_text("\\n".join(out))
+          print("\\n".join(out)[:50000])
+          PY
+          git add live-source-report.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Inspect live storefront and admin source"
+          git push

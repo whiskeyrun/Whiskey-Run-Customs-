@@ -1,17 +1,12 @@
-// Loads products saved in the owner dashboard into the storefront.
+// Loads the owner's live Supabase catalog into the existing storefront design.
 (async () => {
   try {
-    const client = window.supabase.createClient(
-      'https://vaksbwntwarmyidkudcf.supabase.co',
-      'sb_publishable_5LTFwcF5Cprv4GXd9K0bOQ_LWlpcwWD'
-    );
-    const { data, error } = await client
-      .from('products')
-      .select('id,name,description,price,image_url,available')
-      .eq('available', true)
-      .order('id', { ascending: true });
-
-    if (error) throw error;
+    const response = await fetch('/.netlify/functions/list-products', {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store'
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Product catalog could not be loaded.');
     if (!Array.isArray(data) || data.length === 0) {
       console.info('No active dashboard products yet; showing the existing catalog.');
       return;
@@ -27,8 +22,7 @@
       image: p.image_url || ''
     }));
 
-    // Mutate the original array so the existing cart and rendering functions
-    // continue to work without replacing the site's design.
+    // Mutate the existing array so the site's cart and design keep working.
     products.splice(0, products.length, ...liveProducts);
     cart = [];
     renderProducts();

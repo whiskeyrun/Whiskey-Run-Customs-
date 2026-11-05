@@ -90,12 +90,16 @@ const supabaseResponse = await fetch(
 );
 
 if (!supabaseResponse.ok) {
+  const supabaseError = await supabaseResponse.text();
   console.error(
-  "Supabase order save failed:",
-  supabaseResponse.status,
-  await supabaseResponse.text()
-);
-  return new Response("Order recording failed", { status: 500 });
+    "Supabase order save failed:",
+    supabaseResponse.status,
+    supabaseError
+  );
+  return new Response(
+    `Order recording failed: Supabase HTTP ${supabaseResponse.status} - ${supabaseError}`,
+    { status: 500 }
+  );
 }
       const emailBody = [
         "New paid order - Whiskey Run Customs",

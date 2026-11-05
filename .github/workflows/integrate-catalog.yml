@@ -1,0 +1,36 @@
+name: Connect dashboard catalog to storefront
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'catalog-loader.js'
+      - '.github/workflows/integrate-catalog.yml'
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add catalog loader to storefront
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("index.html")
+          html=p.read_text()
+          tag='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>\\n<script src="/catalog-loader.js"></script>\\n'
+          if '/catalog-loader.js' not in html:
+              if '</body>' not in html:
+                  raise SystemExit('Could not find closing body tag in index.html')
+              html=html.replace('</body>', tag+'</body>', 1)
+              p.write_text(html)
+          PY
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "Storefront already connected."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Connect storefront to live Supabase product catalog"
+          git push

@@ -25,13 +25,17 @@ export default async (request) => {
 
     const requested = body.items.map((item) => {
       const id = String(item.id ?? "");
-      // The storefront cart stores its count as "qty"; accept both common names.
+      // Accept the cart's original quantity field (qty) and the API alias.
       const quantity = Number(item.quantity ?? item.qty);
-      const validId = /^\d+$/.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+      const validId = /^[a-zA-Z0-9_-]{1,128}$/.test(id);
       if (!validId || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
         throw new Error("One or more cart items are invalid.");
       }
-      return { id, quantity };
+      return {
+        id,
+        quantity,
+        name: String(item.name ?? "").trim()
+      };
     });
 
     const ids = [...new Set(requested.map((item) => item.id))];
@@ -67,9 +71,14 @@ export default async (request) => {
       "6": { name: "Small Slate Charcuterie Boards", price: 25 },
       "7": { name: "Large Slate Charcuterie Boards", price: 50 }
     };
+    const originalFixedProductsByName = new Map(
+      Object.values(originalFixedProducts).map((product) => [product.name.toLowerCase(), product])
+    );
 
-    const line_items = requested.map(({ id, quantity }) => {
-      const product = productMap.get(id) || originalFixedProducts[id];
+    const line_items = requested.map(({ id, quantity, name }) => {
+      const product = productMap.get(id) ||
+        originalFixedProducts[id] ||
+        originalFixedProductsByName.get(name.toLowerCase());
       const amount = Math.round(Number(product?.price) * 100);
       if (!product || !Number.isSafeInteger(amount) || amount < 50 || amount > 99999999) {
         throw new Error("A cart item is no longer available for online payment. Custom-quote products must be requested separately.");

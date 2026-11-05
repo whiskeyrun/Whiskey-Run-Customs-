@@ -132,8 +132,12 @@ if (!supabaseResponse.ok) {
       });
 
       if (!response.ok) {
-        console.error("Resend delivery failed:", response.status);
-        return new Response("Email delivery failed", { status: 500 });
+        const resendError = await response.text();
+        console.error("Resend delivery failed:", response.status, resendError);
+        return new Response(
+          `Email delivery failed: Resend HTTP ${response.status} - ${resendError}`,
+          { status: 500 }
+        );
       }
 
     } catch (error) {

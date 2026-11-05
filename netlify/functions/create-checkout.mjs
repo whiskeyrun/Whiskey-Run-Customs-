@@ -98,6 +98,7 @@ export default async (request) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
+      automatic_tax: { enabled: true },
       billing_address_collection: "required",
       shipping_address_collection: { allowed_countries: ["US"] },
       phone_number_collection: { enabled: true },

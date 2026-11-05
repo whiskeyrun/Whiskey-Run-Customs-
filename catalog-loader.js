@@ -1,4 +1,5 @@
-// Loads the owner's live Supabase catalog into the existing storefront design.
+// Merge dashboard products into the original catalog without hiding any
+// of the products already present in the storefront.
 (async () => {
   try {
     const response = await fetch('/.netlify/functions/list-products', {
@@ -7,12 +8,9 @@
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Product catalog could not be loaded.');
-    if (!Array.isArray(data) || data.length === 0) {
-      console.info('No active dashboard products yet; showing the existing catalog.');
-      return;
-    }
+    if (!Array.isArray(data) || data.length === 0) return;
 
-    const liveProducts = data.map((p) => ({
+    const dashboardProducts = data.map((p) => ({
       id: Number(p.id),
       name: p.name || 'Custom product',
       desc: p.description || '',
@@ -22,12 +20,21 @@
       image: p.image_url || ''
     }));
 
-    // Mutate the existing array so the site's cart and design keep working.
-    products.splice(0, products.length, ...liveProducts);
-    cart = [];
+    // Preserve the complete built-in catalog. Only update products with a
+    // matching ID, and append dashboard-only products rather than replacing
+    // the entire list with a possibly partial database result.
+    const merged = new Map(products.map((p) => [Number(p.id), p]));
+    for (const product of dashboardProducts) {
+      const existing = merged.get(product.id);
+      merged.set(product.id, existing
+        ? { ...existing, ...product, image: product.image || existing.image || '' }
+        : product);
+    }
+
+    products.splice(0, products.length, ...merged.values());
     renderProducts();
     renderCart();
   } catch (error) {
-    console.error('Could not load the live product catalog:', error);
+    console.error('Could not load dashboard products; keeping the original catalog:', error);
   }
 })();

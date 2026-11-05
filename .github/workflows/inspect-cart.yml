@@ -1,0 +1,37 @@
+name: Inspect cart behavior
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/inspect-cart.yml
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract cart source excerpts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path("index.html").read_text(errors="replace")
+          terms=["const products","let cart","function renderProducts","function renderCart","data-add","data-inc","data-dec","addEventListener","quoteCheckout","checkout.onclick","fetch('/.netlify/functions/create-checkout'"]
+          out=[]
+          for term in terms:
+              start=0; found=[]
+              while True:
+                  i=s.find(term,start)
+                  if i<0: break
+                  found.append(i); start=i+len(term)
+              out.append(f"\\n### {term} ({len(found)})")
+              for i in found[:6]:
+                  out.append(s[max(0,i-500):min(len(s),i+1600)].replace("\\n"," "))
+          Path("cart-inspection.txt").write_text("\\n".join(out))
+          PY
+          git add cart-inspection.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Inspect storefront cart handlers"
+          git push

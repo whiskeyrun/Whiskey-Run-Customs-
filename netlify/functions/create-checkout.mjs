@@ -59,8 +59,17 @@ export default async (request) => {
     const productRows = await productResponse.json();
     const productMap = new Map(productRows.map((product) => [String(product.id), product]));
 
+    // Preserve the original fixed-price storefront items even if they were
+    // never entered as rows in the Supabase dashboard catalog.
+    const originalFixedProducts = {
+      "4": { name: "Laser-Engraved RFID Wallets", price: 60 },
+      "5": { name: "Slate Coasters", price: 20 },
+      "6": { name: "Small Slate Charcuterie Boards", price: 25 },
+      "7": { name: "Large Slate Charcuterie Boards", price: 50 }
+    };
+
     const line_items = requested.map(({ id, quantity }) => {
-      const product = productMap.get(id);
+      const product = productMap.get(id) || originalFixedProducts[id];
       const amount = Math.round(Number(product?.price) * 100);
       if (!product || !Number.isSafeInteger(amount) || amount < 50 || amount > 99999999) {
         throw new Error("A cart item is no longer available for online payment. Custom-quote products must be requested separately.");

@@ -181,5 +181,5 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{e.preventD
 const params=new URLSearchParams(window.location.search);if(params.get('payment')==='success'){alert('Thank you for checking out with Whiskey Run Customs. Stripe has returned you to the store; please keep your Stripe receipt as your payment confirmation.');window.history.replaceState({},document.title,window.location.pathname);}
 document.getElementById('year').textContent=new Date().getFullYear();renderProducts();renderCart();
 </script>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>\n<script src="/catalog-loader.js"></script>\n</body>
 </html>

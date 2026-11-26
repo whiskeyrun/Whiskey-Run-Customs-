@@ -212,5 +212,36 @@ const distance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY
 v.addEventListener('touchstart',e=>{if(e.touches.length===2){pinch={distance:distance(e.touches),z};e.preventDefault();}},{passive:false});v.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();zoom(pinch.z*distance(e.touches)/Math.max(1,pinch.distance));}},{passive:false});v.addEventListener('touchend',()=>pinch=null);v.addEventListener('touchcancel',()=>pinch=null);
 })();
 </script>
+
+<style id="wr-cart-background-fix">
+/* Cart and quote dialog sit outside #app; supply their own theme variables. */
+#drawer, #checkoutModal {
+  --surface: light-dark(#fffaf1, #22221c);
+  --surface2: light-dark(#e9e0d1, #2d2c25);
+  --muted: light-dark(#6d675d, #bcb3a4);
+  --line: light-dark(#d9cebd, #454238);
+}
+#drawer, #checkoutModal .modal-card {
+  background-color: #fffaf1;
+  background-color: var(--surface);
+  color: #211f1a;
+  color: light-dark(#211f1a, #f4eee3);
+}
+#drawer { z-index: 1001; }
+#backdrop { z-index: 1000; }
+#checkoutModal { z-index: 1002; }
+#drawer .drawer-head, #drawer .drawer-foot { flex-shrink: 0; }
+#drawer .cart-items { min-height: 0; }
+#drawer .outline-btn { color: inherit; }
+</style>
+<script>
+window.addEventListener('pageshow', function () {
+  const button = document.getElementById('checkout');
+  if (button && button.disabled) {
+    button.disabled = false;
+    button.textContent = 'Pay securely with Stripe';
+  }
+});
+</script>
 </body>
 </html>

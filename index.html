@@ -181,5 +181,36 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{e.preventD
 const params=new URLSearchParams(window.location.search);if(params.get('payment')==='success'){alert('Thank you for checking out with Whiskey Run Customs. Stripe has returned you to the store; please keep your Stripe receipt as your payment confirmation.');window.history.replaceState({},document.title,window.location.pathname);}
 document.getElementById('year').textContent=new Date().getFullYear();renderProducts();renderCart();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>\n<script src="/catalog-loader.js"></script>\n</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>\n<script src="/catalog-loader.js"></script>\n<style>
+#products .product-art img, .gallery-card img {object-fit:contain!important;cursor:zoom-in;}
+#products .product-art em, #products .product-art .symbol {pointer-events:none;}
+#wr-photo-view {position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;padding:0;background:#141414;color:white;}
+#wr-photo-view[open]{display:flex;flex-direction:column;}
+#wr-photo-view::backdrop{background:#141414;}
+#wr-photo-tools{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px;flex:none;}
+#wr-photo-tools button{background:#333;color:white;border:1px solid #777;border-radius:6px;padding:10px 15px;font-size:18px;}
+#wr-photo-scroll{flex:1;min-height:0;overflow:auto;}
+#wr-photo-stage{min-width:100%;min-height:100%;display:grid;place-items:center;}
+#wr-photo-image{display:block;max-width:none;max-height:none;}
+</style>
+<dialog id="wr-photo-view" aria-label="Enlarged product photo">
+<div id="wr-photo-tools"><button type="button" id="wr-minus" aria-label="Zoom out">&#8722;</button><button type="button" id="wr-plus" aria-label="Zoom in">+</button><button type="button" id="wr-reset">Fit</button><button type="button" id="wr-close">Close &#215;</button></div>
+<div id="wr-photo-scroll"><div id="wr-photo-stage"><img id="wr-photo-image" alt=""></div></div>
+</dialog>
+<script>
+(()=>{const d=document.getElementById('wr-photo-view'),v=document.getElementById('wr-photo-scroll'),stage=document.getElementById('wr-photo-stage'),img=document.getElementById('wr-photo-image');let z=1,previous=null,overflow='',pinch=null;
+const selector='#products .product-art img, #products img.product-photo, .gallery-card img';
+function fit(){if(!img.naturalWidth||!d.open)return;const f=Math.min(v.clientWidth/img.naturalWidth,v.clientHeight/img.naturalHeight);img.style.width=Math.round(img.naturalWidth*f*z)+'px';img.style.height=Math.round(img.naturalHeight*f*z)+'px';stage.style.width=Math.max(v.clientWidth,img.width)+'px';stage.style.height=Math.max(v.clientHeight,img.height)+'px';}
+function zoom(n){const x=(v.scrollLeft+v.clientWidth/2)/Math.max(stage.offsetWidth,1),y=(v.scrollTop+v.clientHeight/2)/Math.max(stage.offsetHeight,1);z=Math.max(1,Math.min(5,n));fit();v.scrollLeft=x*stage.offsetWidth-v.clientWidth/2;v.scrollTop=y*stage.offsetHeight-v.clientHeight/2;}
+function open(p){if(d.open)return;previous=p;z=1;img.alt=p.alt||'Product photo';img.src=p.currentSrc||p.src;overflow=document.body.style.overflow;document.body.style.overflow='hidden';d.showModal();fit();v.scrollTop=v.scrollLeft=0;}
+function prepare(){document.querySelectorAll(selector).forEach(p=>{if(!p.hasAttribute('data-wr-zoom')){p.setAttribute('data-wr-zoom','');p.tabIndex=0;p.setAttribute('role','button');p.setAttribute('aria-label','Enlarge '+(p.alt||'product photo'));p.title='Tap to enlarge';}});}
+new MutationObserver(prepare).observe(document.getElementById('app'),{childList:true,subtree:true});prepare();
+document.addEventListener('click',e=>{const p=e.target.closest(selector);if(p){e.preventDefault();open(p);}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches(selector)){e.preventDefault();open(e.target);}});
+img.onload=fit;window.addEventListener('resize',fit);document.getElementById('wr-plus').onclick=()=>zoom(z*1.5);document.getElementById('wr-minus').onclick=()=>zoom(z/1.5);document.getElementById('wr-reset').onclick=()=>zoom(1);document.getElementById('wr-close').onclick=()=>d.close();d.addEventListener('close',()=>{document.body.style.overflow=overflow;img.removeAttribute('src');if(previous&&previous.isConnected)previous.focus({preventScroll:true});});
+const distance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+v.addEventListener('touchstart',e=>{if(e.touches.length===2){pinch={distance:distance(e.touches),z};e.preventDefault();}},{passive:false});v.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();zoom(pinch.z*distance(e.touches)/Math.max(1,pinch.distance));}},{passive:false});v.addEventListener('touchend',()=>pinch=null);v.addEventListener('touchcancel',()=>pinch=null);
+})();
+</script>
+</body>
 </html>
